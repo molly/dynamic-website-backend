@@ -1,31 +1,34 @@
-const express = require("express");
-const db = require("../models");
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+const db = require('../models');
 const User = db.User;
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+const config = require('../config/auth.config');
+const { RefreshToken } = require('../models');
 
 const router = express.Router();
 
-router.post("/signup", function (req, res) {
+router.post('/signup', (req, res) => {
   const user = new User({
     username: req.body.username,
     password: bcrypt.hashSync(req.body.password, 8),
   });
-  user.save((err, user) => {
+  user.save((err) => {
     if (err) {
       return res.status(500).send({ message: err });
     }
-    return res.send({ message: "Registration successful" });
+    return res.send({ message: 'Registration successful' });
   });
 });
 
-router.post("/signin", function (req, res) {
-  User.findOne({ username: req.body.username }).exec((err, user) => {
+router.post('/signin', async (req, res) => {
+  User.findOne({ username: req.body.username }).exec(async (err, user) => {
     if (err) {
       return res.status(500).send({ message: err });
     }
     if (!user) {
-      return res.status(400).send({ message: "User not found" });
+      return res.status(400).send({ message: 'User not found' });
     }
 
     const isValidPassword = bcrypt.compareSync(
@@ -34,22 +37,58 @@ router.post("/signin", function (req, res) {
     );
 
     if (!isValidPassword) {
-      return res.status(401).send({ message: "Invalid password" });
+      return res.status(401).send({ message: 'Invalid password' });
     }
 
-    const token = jwt.sign({ id: user.id }, config.secret, {
-      expiresIn: 604800, // 1 week
+    const accessToken = jwt.sign({ id: user._id }, config.secret, {
+      expiresIn: config.tokenExpiry,
     });
+    const refreshToken = await RefreshToken.createToken(user);
 
-    req.session.token = token;
-    res.status(200).send({ id: user._id, username: user.username });
+    res.status(200).send({
+      id: user._id,
+      username: user.username,
+      accessToken,
+      refreshToken,
+    });
   });
 });
 
-router.post("/signout", function (req, res, next) {
+router.post('/refresh', async (req, res) => {
+  const requestToken = req.body.refreshToken;
+  if (!requestToken) {
+    return res.status(403).send({ message: 'Refresh token missing' });
+  }
+  try {
+    const refreshToken = await RefreshToken.findOne({
+      token: requestToken,
+    });
+    if (!refreshToken) {
+      return res
+        .status(403)
+        .send({ message: 'Refresh token not found in database' });
+    }
+    if (RefreshToken.isExpiredOrInvalid(refreshToken.token)) {
+      RefreshToken.findByIdAndRemove(refreshToken._id, {
+        useFindAndModify: false,
+      }).exec();
+      return res.status(403).message({
+        message: 'Refresh token expired or invalid. Please sign in again.',
+      });
+    }
+    const accessToken = jwt.sign({ id: refreshToken.user }, config.secret, {
+      expiresIn: config.tokenExpiry,
+    });
+    return res.send({ accessToken, refreshToken: refreshToken.token });
+  } catch (err) {
+    return res.status(500).send({ message: err });
+  }
+});
+
+router.post('/signout', (req, res, next) => {
   try {
     req.session = null;
-    return res.status(200).send({ message: "Signed out" });
+    return res.status(200).send({ message: 'Signed out' });
   } catch (err) {
     next(err);
   }
