@@ -1,20 +1,50 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const express = require("express");
+const path = require("path");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
+const logger = require("morgan");
+const { ServerApiVersion } = require("mongodb");
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const db = require("./models");
 
-var app = express();
+const authRouter = require("./routes/auth");
 
-app.use(logger('dev'));
+const app = express();
+app.use(
+  cors({
+    origin: "http://localhost:3000/",
+  })
+);
+
+app.use(logger("dev"));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
+app.use(
+  cookieSession({
+    name: "reading-list-extension",
+    secret: process.env.COOKIE_SESSION_SECRET,
+  })
+);
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+db.mongoose
+  .connect(
+    `mongodb+srv://reading-list:${process.env.PASSWORD}@cluster0.ptjwk.mongodb.net/reading-list?retryWrites=true&w=majority`,
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverApi: ServerApiVersion.v1,
+    }
+  )
+  .then(() => {
+    console.log("db connected");
+  })
+  .catch((err) => {
+    console.error("db connection error");
+    process.exit();
+  });
+
+app.use("/auth", authRouter);
 
 module.exports = app;
