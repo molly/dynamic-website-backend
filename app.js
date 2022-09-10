@@ -1,28 +1,27 @@
-const express = require("express");
-const path = require("path");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-const cookieSession = require("cookie-session");
-const logger = require("morgan");
-const { ServerApiVersion } = require("mongodb");
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
+const logger = require('morgan');
+const { ServerApiVersion } = require('mongodb');
 
-const db = require("./models");
+const db = require('./models');
 
-const authRouter = require("./routes/auth");
+const authRouter = require('./routes/auth');
 
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:3000/",
+    origin: 'http://localhost:3000/',
   })
 );
 
-app.use(logger("dev"));
+app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cookieSession({
-    name: "reading-list-extension",
+    name: 'reading-list-extension',
     secret: process.env.COOKIE_SESSION_SECRET,
   })
 );
@@ -38,13 +37,13 @@ db.mongoose
     }
   )
   .then(() => {
-    console.log("db connected");
+    console.log('db connected');
   })
-  .catch((err) => {
-    console.error("db connection error");
+  .catch(() => {
+    console.error('db connection error');
     process.exit();
   });
 
-app.use("/auth", authRouter);
+app.use('/auth', authRouter);
 
 module.exports = app;

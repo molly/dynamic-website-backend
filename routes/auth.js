@@ -22,7 +22,7 @@ router.post('/signup', (req, res) => {
   });
 });
 
-router.post('/signin', async (req, res) => {
+router.post('/signin', (req, res) => {
   User.findOne({ username: req.body.username }).exec(async (err, user) => {
     if (err) {
       return res.status(500).send({ message: err });

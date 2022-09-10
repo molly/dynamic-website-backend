@@ -1,3 +1,3 @@
-const jwt = require("./jwt");
+const jwt = require('./jwt');
 
 module.exports = { ...jwt };

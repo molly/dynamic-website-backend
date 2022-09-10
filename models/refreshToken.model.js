@@ -1,13 +1,12 @@
-const mongoose = require("mongoose");
-const config = require("../config/auth.config");
-const jwt = require("jsonwebtoken");
-const { refreshTokenExpiry } = require("../config/auth.config");
+const mongoose = require('mongoose');
+const config = require('../config/auth.config');
+const jwt = require('jsonwebtoken');
 
 const RefreshTokenSchema = new mongoose.Schema({
   token: String,
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
   },
   expiryDate: Date,
 });
@@ -35,10 +34,10 @@ RefreshTokenSchema.statics.createToken = async function (user) {
 };
 
 RefreshTokenSchema.statics.isExpiredOrInvalid = (token) => {
-  jwt.verify(token, config.refreshSecret, (err, decoded) => {
+  jwt.verify(token, config.refreshSecret, (err) => {
     return !!err;
   });
 };
 
-const RefreshToken = mongoose.model("RefreshToken", RefreshTokenSchema);
+const RefreshToken = mongoose.model('RefreshToken', RefreshTokenSchema);
 module.exports = RefreshToken;
