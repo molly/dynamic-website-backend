@@ -8,6 +8,7 @@ const { ServerApiVersion } = require('mongodb');
 const db = require('./models');
 
 const authRouter = require('./routes/auth');
+const readingListRouter = require('./routes/reading-list');
 
 const app = express();
 app.use(
@@ -26,6 +27,7 @@ app.use(
   })
 );
 app.use(cookieParser());
+app.disable('etag'); // TODO: Caching
 
 db.mongoose
   .connect(
@@ -44,6 +46,7 @@ db.mongoose
     process.exit();
   });
 
+app.use('/', readingListRouter);
 app.use('/auth', authRouter);
 
 module.exports = app;

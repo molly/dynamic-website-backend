@@ -57,6 +57,7 @@ router.post('/signin', (req, res) => {
 router.post('/refresh', async (req, res) => {
   const requestToken = req.body.refreshToken;
   if (!requestToken) {
+    console.log('missing');
     return res.status(403).send({ message: 'Refresh token missing' });
   }
   try {
@@ -64,6 +65,7 @@ router.post('/refresh', async (req, res) => {
       token: requestToken,
     });
     if (!refreshToken) {
+      console.log('missing from db');
       return res
         .status(403)
         .send({ message: 'Refresh token not found in database' });
@@ -72,6 +74,7 @@ router.post('/refresh', async (req, res) => {
       RefreshToken.findByIdAndRemove(refreshToken._id, {
         useFindAndModify: false,
       }).exec();
+      console.log('invalid');
       return res.status(403).message({
         message: 'Refresh token expired or invalid. Please sign in again.',
       });

@@ -27,7 +27,7 @@ RefreshTokenSchema.statics.createToken = async function (user) {
   });
 
   // There should only be one valid refresh token per user at any given time
-  this.deleteMany({ user: user._id });
+  console.log(await this.deleteMany({ user: user._id }));
 
   const refreshToken = await _object.save();
   return refreshToken.token;
@@ -39,5 +39,9 @@ RefreshTokenSchema.statics.isExpiredOrInvalid = (token) => {
   });
 };
 
-const RefreshToken = mongoose.model('RefreshToken', RefreshTokenSchema);
+const RefreshToken = mongoose.model(
+  'RefreshToken',
+  RefreshTokenSchema,
+  'refreshTokens'
+);
 module.exports = RefreshToken;
