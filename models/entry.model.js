@@ -12,4 +12,15 @@ const EntrySchema = {
   entryAdded: Date,
 };
 
-module.exports = EntrySchema;
+const ShortformSchema = {
+  ...EntrySchema,
+  started: { type: String, required: true, match: /^\d{4}(-\d{2}){0,2}$/ },
+  completed: { type: String, required: false, match: /^\d{4}(-\d{2}){0,2}$/ },
+  status: {
+    type: String,
+    enum: ['read', 'currentlyReading', 'reference', 'shelved', 'toRead'],
+  },
+  relatedReading: [String],
+};
+
+module.exports = { EntrySchema, ShortformSchema };

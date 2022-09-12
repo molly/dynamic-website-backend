@@ -27,7 +27,6 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.disable('etag'); // TODO: Caching
 
 db.mongoose
   .connect(

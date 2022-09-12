@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const EntrySchema = require('./entry.model');
+const { EntrySchema } = require('./entry.model');
 
 const PressEntry = mongoose.model(
   'PressEntry',
