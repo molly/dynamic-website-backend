@@ -9,6 +9,8 @@ const ShortformEntry = require('../models/shortformEntry.model');
 
 const sortBy = require('lodash.sortby');
 
+const { verifyJwt } = require('../middlewares/jwt');
+
 const express = require('express');
 const router = express.Router();
 
@@ -33,7 +35,7 @@ router.get('/tags', async (_, res) => {
   res.send(tags);
 });
 
-router.post('/entry', async (req, res) => {
+router.post('/entry', verifyJwt, async (req, res) => {
   const { type, entry } = req.body;
   const model = new models[type](entry);
   try {

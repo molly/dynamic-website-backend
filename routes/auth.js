@@ -6,21 +6,22 @@ const db = require('../models');
 const User = db.User;
 const config = require('../config/auth.config');
 const { RefreshToken } = require('../models');
+const { verifyJwt } = require('../middlewares/jwt');
 
 const router = express.Router();
 
-router.post('/signup', (req, res) => {
-  const user = new User({
-    username: req.body.username,
-    password: bcrypt.hashSync(req.body.password, 8),
-  });
-  user.save((err) => {
-    if (err) {
-      return res.status(500).send({ message: err });
-    }
-    return res.send({ message: 'Registration successful' });
-  });
-});
+// router.post('/signup', (req, res) => {
+//   const user = new User({
+//     username: req.body.username,
+//     password: bcrypt.hashSync(req.body.password, 8),
+//   });
+//   user.save((err) => {
+//     if (err) {
+//       return res.status(500).send({ message: err });
+//     }
+//     return res.send({ message: 'Registration successful' });
+//   });
+// });
 
 router.post('/signin', (req, res) => {
   User.findOne({ username: req.body.username }).exec(async (err, user) => {
@@ -57,7 +58,6 @@ router.post('/signin', (req, res) => {
 router.post('/refresh', async (req, res) => {
   const requestToken = req.body.refreshToken;
   if (!requestToken) {
-    console.log('missing');
     return res.status(403).send({ message: 'Refresh token missing' });
   }
   try {
@@ -65,7 +65,6 @@ router.post('/refresh', async (req, res) => {
       token: requestToken,
     });
     if (!refreshToken) {
-      console.log('missing from db');
       return res
         .status(403)
         .send({ message: 'Refresh token not found in database' });
@@ -74,7 +73,6 @@ router.post('/refresh', async (req, res) => {
       RefreshToken.findByIdAndRemove(refreshToken._id, {
         useFindAndModify: false,
       }).exec();
-      console.log('invalid');
       return res.status(403).message({
         message: 'Refresh token expired or invalid. Please sign in again.',
       });
@@ -86,6 +84,11 @@ router.post('/refresh', async (req, res) => {
   } catch (err) {
     return res.status(500).send({ message: err });
   }
+});
+
+router.post('/isSignedIn', verifyJwt, (req, res) => {
+  // verifyJwt will break if there's an error
+  return res.status(204).send();
 });
 
 router.post('/signout', (req, res, next) => {

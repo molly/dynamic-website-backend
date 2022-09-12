@@ -27,7 +27,7 @@ RefreshTokenSchema.statics.createToken = async function (user) {
   });
 
   // There should only be one valid refresh token per user at any given time
-  console.log(await this.deleteMany({ user: user._id }));
+  await this.deleteMany({ user: user._id });
 
   const refreshToken = await _object.save();
   return refreshToken.token;

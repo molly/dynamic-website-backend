@@ -2,10 +2,16 @@ const jwt = require('jsonwebtoken');
 const config = require('../config/auth.config.js');
 
 const verifyJwt = (req, res, next) => {
-  const token = req.session.token;
-  if (!token) {
+  const bearerHeader = req.headers['authorization'];
+  if (!bearerHeader) {
     return res.status(403).send({ message: 'Token missing from request' });
   }
+
+  const splitHeader = bearerHeader.split(' ');
+  if (splitHeader.length < 2) {
+    return res.status(403).send({ message: 'Malformed token' });
+  }
+  const token = splitHeader[1];
 
   jwt.verify(token, config.secret, (err, decoded) => {
     if (err) {
